@@ -1,7 +1,15 @@
 module Header exposing (Model, Msg(..), view, init)
+
 import Element exposing (Element)
 import Element.Events
 import Element.Border
+
+import Page.Products as Products
+import Page.Resources as Resources
+import Page.About as About
+import Page.Contact as Contact
+
+import Page as P
 
 type alias Model = {}
 type Msg
@@ -9,6 +17,14 @@ type Msg
     | ClickedResources
     | ClickedAbout
     | ClickedContact
+
+toPage : Msg -> P
+toPage msg =
+    case msg of
+        ClickedProducts  -> P.Products     <| Products.init ()
+        ClickedResources -> P.Resources    <| Resources.init ()
+        ClickedAbout     -> P.About        <| About.init ()
+        ClickedContact   -> P.Contact      <| Contact.init ()
 
 init : () -> Model
 init flags = {}

@@ -6,30 +6,28 @@ import Html exposing (Html)
 import Element exposing (Element, el, text, column)
 import String exposing (right)
 import Browser.Navigation
+-- import Html exposing (header)
 
 import Page.Landing
+import Page.Products
+import Page.Resources
+import Page.About
+import Page.Contact
+import Router
 import Header
-import Html exposing (header)
 
 
 -- MODEL
-type Page
-    = Landing Page.Landing.Model
-    | Products
-    | Resources
-    | About
-    | Contact
-
 type alias Model =
     { key : Browser.Navigation.Key
     , url : Url.Url
-    , page : Page
+    , page : Router.Page
     , header : Header.Model}
 
 init : () -> Url.Url -> Browser.Navigation.Key -> ( Model, Cmd Msg )
 init flags url key =
     let
-        page = Landing (Page.Landing.init flags)
+        page = Router.Landing (Page.Landing.init flags)
         header = Header.init flags
         model =
             { key = key
@@ -40,27 +38,11 @@ init flags url key =
     in
         (model, Cmd.none)
 
-toPage : Header.Msg -> Page
-toPage msg =
-    case msg of
-        Header.ClickedProducts -> Products
-        Header.ClickedResources -> Resources
-        Header.ClickedAbout -> About
-        Header.ClickedContact -> Contact
-
--- TODO : move this function to Router.elm
-toUrl : Url.Url -> Header.Msg -> Url.Url
-toUrl baseUrl msg =
-    case msg of
-        Header.ClickedProducts -> {baseUrl | path = "/products"}
-        Header.ClickedResources -> {baseUrl | path = "/resources"}
-        Header.ClickedAbout -> {baseUrl | path = "/about"}
-        Header.ClickedContact -> {baseUrl | path = "/contact"}
-
 -- UPDATE
 type Msg
     = NoOp
     | Header Header.Msg
+    -- TODO : Fix
     | LandingPage Page.Landing.Msg
     | UrlChanged Url.Url
     | LinkedClicked Browser.UrlRequest
@@ -71,8 +53,8 @@ update msg model =
     case msg of
         Header headerMsg ->
             let
-                newUrl = toUrl model.url headerMsg
-                newModel = { model | page = toPage headerMsg }
+                newUrl = Router.toUrl model.url headerMsg
+                newModel = { model | page = Router.toPage headerMsg }
             in
                 (newModel, Browser.Navigation.pushUrl model.key (Url.toString newUrl))
         _ -> (model, Cmd.none)
@@ -85,11 +67,11 @@ viewBody : Model -> Element.Element Msg
 viewBody model =
     let
         content = case model.page of
-            Landing m -> Page.Landing.view m |> Element.map LandingPage
-            Products -> Element.text "Products"
-            Resources -> Element.text "Resources"
-            About -> Element.text "About"
-            Contact -> Element.text "Contact"
+            Router.Landing m -> Page.Landing.view m |> Element.map LandingPage
+            Router.Products m -> Page.Products.view m |> Element.map LandingPage
+            Router.Resources m -> Page.Resources.view m |> Element.map LandingPage
+            Router.About m -> Page.About.view m |> Element.map LandingPage
+            Router.Contact m -> Page.Contact.view m |> Element.map LandingPage
     in
         Element.el [Element.centerY ,Element.centerX] content
 
