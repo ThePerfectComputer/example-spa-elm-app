@@ -1,35 +1,35 @@
 module Main exposing (main)
 
+-- external imports
 import Browser
 import Url
 import Html exposing (Html)
 import Element exposing (Element, el, text, column)
 import String exposing (right)
 import Browser.Navigation
-
-import Page.Landing
-import Header
+import Browser exposing (UrlRequest)
 import Html exposing (header)
 
+-- internal imports
+import Body
+import Header
 
--- MODEL
-type Page
-    = Landing Page.Landing.Model
-    | Products
-    | Resources
-    | About
-    | Contact
+type Msg
+    = Header        Header.Msg
+    | Body          Body.Msg
+    | UrlChanged    Url.Url
+    | UrlRequest    Browser.UrlRequest
 
 type alias Model =
     { key : Browser.Navigation.Key
     , url : Url.Url
-    , page : Page
+    , page : Body.Model
     , header : Header.Model}
 
 init : () -> Url.Url -> Browser.Navigation.Key -> ( Model, Cmd Msg )
 init flags url key =
     let
-        page = Landing (Page.Landing.init flags)
+        page = Body.init flags
         header = Header.init flags
         model =
             { key = key
@@ -40,85 +40,49 @@ init flags url key =
     in
         (model, Cmd.none)
 
-toPage : Header.Msg -> Page
-toPage msg =
-    case msg of
-        Header.ClickedProducts -> Products
-        Header.ClickedResources -> Resources
-        Header.ClickedAbout -> About
-        Header.ClickedContact -> Contact
-
--- TODO : move this function to Router.elm
-toUrl : Url.Url -> Header.Msg -> Url.Url
-toUrl baseUrl msg =
-    case msg of
-        Header.ClickedProducts -> {baseUrl | path = "/products"}
-        Header.ClickedResources -> {baseUrl | path = "/resources"}
-        Header.ClickedAbout -> {baseUrl | path = "/about"}
-        Header.ClickedContact -> {baseUrl | path = "/contact"}
-
--- UPDATE
-type Msg
-    = NoOp
-    | Header Header.Msg
-    | LandingPage Page.Landing.Msg
-    | UrlChanged Url.Url
-    | UrlRequest Browser.UrlRequest
-
-
 update : Msg -> Model -> (Model, Cmd Msg)
 update msg model =
     case msg of
-        Header headerMsg ->
+        Body bodyMsg ->
             let
-                newUrl = toUrl model.url headerMsg
-                newModel = { model | page = toPage headerMsg }
+                (newPage, cmd) = Body.update bodyMsg model.page
             in
-                (newModel, Browser.Navigation.pushUrl model.key (Url.toString newUrl))
-        UrlChanged url ->
-                (model, Browser.Navigation.pushUrl model.key (Url.toString url))
+                ( {model | page = newPage}, cmd |> Cmd.map Body )
+        UrlChanged url  ->
+            ( {model | url = url}, Cmd.none )
+        UrlRequest (Browser.Internal url) ->
+            ( model, Browser.Navigation.pushUrl model.key (Url.toString url) )
         _ -> (model, Cmd.none)
 
 subscriptions : Model -> Sub Msg
 subscriptions _ =
   Sub.none
 
-viewBody : Model -> Element.Element Msg
-viewBody model =
-    let
-        content = case model.page of
-            Landing m -> Page.Landing.view m |> Element.map LandingPage
-            Products -> Element.text "Products"
-            Resources -> Element.text "Resources"
-            About -> Element.text "About"
-            Contact -> Element.text "Contact"
-    in
-        Element.el [Element.centerY ,Element.centerX] content
-
--- VIEW
 
 view : Model -> Browser.Document Msg
 view model =
     let
+        header = Header.view model.header |> Element.map Header
+        body = Body.view model.page |> Element.map Body
         page =
             Element.column
                 [ Element.width Element.fill
                 , Element.height Element.fill
                 , Element.centerX]
-                [ Header.view model.header |> Element.map Header
-                , viewBody model]
+                [ header
+                , body]
     in
         { title = "Example Spa Elm App"
         , body  = [ Element.layout [] page ]}
 
--- MAIN
-
 main =
     Browser.application {
-        init   = init
-       ,view   = view
-       ,update = update
-       ,subscriptions = subscriptions
-       ,onUrlChange = UrlChanged
-       ,onUrlRequest = UrlRequest
+        init            = init
+       ,view            = view
+       ,update          = update
+       ,subscriptions   = subscriptions
+       -- when a link is clicked, first UrlRequest is issued
+       ,onUrlRequest    = UrlRequest
+       -- then UrlChanged is issued
+       ,onUrlChange     = UrlChanged
        }

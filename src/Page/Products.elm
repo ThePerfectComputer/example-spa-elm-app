@@ -1,4 +1,4 @@
-module Page.Landing exposing (Model, Msg, view, init, update)
+module Page.Products exposing (Model, Msg, view, init, update)
 import Element exposing (Element)
 
 type alias Model = {}
@@ -13,4 +13,4 @@ update msg model = (model, Cmd.none)
 view : Model -> Element Msg
 view model =
     Element.el []
-        <| Element.text "Landing"
+        <| Element.text "Products"

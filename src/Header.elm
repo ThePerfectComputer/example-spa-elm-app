@@ -1,17 +1,16 @@
-module Header exposing (Model, Msg(..), view, init)
+module Header exposing (Model, Msg, view, init, update)
 import Element exposing (Element)
 import Element.Events
 import Element.Border
 
 type alias Model = {}
-type Msg
-    = ClickedProducts
-    | ClickedResources
-    | ClickedAbout
-    | ClickedContact
+type alias Msg = {}
 
 init : () -> Model
 init flags = {}
+
+update : Msg -> Model -> (Model, Cmd Msg)
+update msg model = (model, Cmd.none)
 
 view : Model -> Element Msg
 view model =
