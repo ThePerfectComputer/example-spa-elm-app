@@ -22,15 +22,17 @@ view model =
             blur = 5,
             color = Element.rgba 0 0 0 0.15
             }
-        headerButton msg string =
-            Element.el
-                [Element.alignRight, Element.Events.onClick <| msg]
-                (Element.text string)
+        headerButton string =
+            Element.link
+                [Element.alignRight]
+                { url = "/" ++ string
+                , label = Element.text string
+                }
 
-        products  = headerButton ClickedProducts "Products"
-        resources = headerButton ClickedResources "Resources"
-        about     = headerButton ClickedAbout "About"
-        contact   = headerButton ClickedContact "Contact"
+        products  = headerButton "Products"
+        resources = headerButton "Resources"
+        about     = headerButton "About"
+        contact   = headerButton "Contact"
     in
     Element.row [Element.width Element.fill,
                  Element.spacing 15,

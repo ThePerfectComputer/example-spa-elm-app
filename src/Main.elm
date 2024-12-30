@@ -63,7 +63,7 @@ type Msg
     | Header Header.Msg
     | LandingPage Page.Landing.Msg
     | UrlChanged Url.Url
-    | LinkedClicked Browser.UrlRequest
+    | UrlRequest Browser.UrlRequest
 
 
 update : Msg -> Model -> (Model, Cmd Msg)
@@ -75,6 +75,8 @@ update msg model =
                 newModel = { model | page = toPage headerMsg }
             in
                 (newModel, Browser.Navigation.pushUrl model.key (Url.toString newUrl))
+        UrlChanged url ->
+                (model, Browser.Navigation.pushUrl model.key (Url.toString url))
         _ -> (model, Cmd.none)
 
 subscriptions : Model -> Sub Msg
@@ -118,5 +120,5 @@ main =
        ,update = update
        ,subscriptions = subscriptions
        ,onUrlChange = UrlChanged
-       ,onUrlRequest = LinkedClicked
+       ,onUrlRequest = UrlRequest
        }
